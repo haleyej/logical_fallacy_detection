@@ -7,8 +7,9 @@ import numpy as np
 import pandas as pd 
 
 from tqdm import tqdm
+from torch.utils.data import Dataset
 from peft import get_peft_model, LoraConfig, TaskType
-from transformers import Dataset, TFBertTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
+from transformers import BertTokenizerFast, AutoModelForSequenceClassification, TrainingArguments, Trainer
 
 # set metrics
 metrics = evaluate.combine(["accuracy", "f1", "precision", "recall"])
@@ -22,7 +23,7 @@ def load_snli(path:str) -> tuple[list]:
     
     RETURNS: 
         a tuple containing 
-            1) a list of sentence pairs (premise, hypothesis)
+            1) the sentence pairs
             2) the labels
     '''
     sentence_pairs = []
@@ -32,8 +33,15 @@ def load_snli(path:str) -> tuple[list]:
     with open(path) as f: 
         lines = f.readlines()
         for line in lines[1:]:
-            sentence_pairs.append((line[5], line[6]))
-            labels.append(labels_to_ids[line[0]])
+            line = line.split("\t")
+            premise = line[5]
+            hypothesis = line[6]
+            text = f'premise: {premise}. hypothesis: {hypothesis}'
+            label = labels_to_ids.get(line[0])
+            if label == None:
+                continue
+            sentence_pairs.append(text)
+            labels.append(label)
     return sentence_pairs, labels
 
 
@@ -112,7 +120,7 @@ def fine_tune_model(train_data_path:str,
     '''
     model_checkpoint = "google-bert/bert-base-uncased"
 
-    tokenizer = TFBertTokenizer.from_pretrained("google-bert/bert-base-uncased")
+    tokenizer = BertTokenizerFast.from_pretrained(model_checkpoint)
     model = AutoModelForSequenceClassification.from_pretrained(model_checkpoint)
 
     peft_config = LoraConfig(task_type = TaskType.SEQ_CLS, 
@@ -141,7 +149,6 @@ def fine_tune_model(train_data_path:str,
         logging_dir = logging_dir,
         logging_strategy = "steps",
         logging_steps = 50,
-        learning_rate = lr,
         weight_decay = weight_decay,
         warmup_steps = 500,
         save_strategy = "steps",
