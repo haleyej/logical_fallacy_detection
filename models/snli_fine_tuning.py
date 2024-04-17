@@ -1,9 +1,12 @@
-import os 
+import os
+import wandb 
+import torch
 import evaluate
 import argparse
 import numpy as np 
 import pandas as pd 
 
+from tqdm import tqdm
 from peft import get_peft_model, LoraConfig, TaskType
 from transformers import Dataset, TFBertTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
 
@@ -40,24 +43,44 @@ def compute_metrics(pred) -> dict:
     return metrics.compute(predictions=predictions, references=labels)
 
 
-class SNLIDataset(Dataset):
-    def __init__(self):
-        pass 
+class LogicDataset(Dataset):
+    def __init__(self, tokenizer, data:list, labels:list, max_len:int=512) -> None:
+        self.tokenizer = tokenizer
+        self.data = data 
+        self.labels = labels 
+        self.max_len = max_len
 
-    def __len__(self):
-        pass 
+    def __len__(self) -> int:
+        return len(self.data)
 
-    def __getitem__(self):
-        pass
+    def __getitem__(self, index) -> dict:
+        text = self.data[index]
+        label = self.labels[index]
+        text = text.strip()
+        
+        output_dict = self.tokenizer(
+                    text = text, 
+                    padding = True, 
+                    truncation = True, 
+                    max_length = self.max_len, 
+                    return_attention_mask = True, 
+                    add_special_tokens = True,
+                    return_special_tokens_mask = False,
+                    return_token_type_ids = False,
+                    return_offsets_mapping = False)
+        
+        output_dict['label'] = label 
+        return output_dict
 
 
 def fine_tune_model(train_data_path:str, 
                     eval_data_path:str,
                     output_dir:str, 
                     logging_dir:str,
-                    epochs:int=10,
+                    max_len:int=512,
+                    epochs:int=20,
                     batch_size:int=8,
-                    eval_steps:int=2000,
+                    eval_steps:int=5000,
                     lr:float=1e-5,
                     weight_decay:float=0.001,
                     r:int=64,
@@ -73,6 +96,7 @@ def fine_tune_model(train_data_path:str,
         eval_data_path: path to eval data
         output_dir: directory to save outputs to 
         logging_dir: directory to save logging to
+        max_len: max length of sequences
         epochs: number of passes through training data
         batch_size: number of instances per batch update
         eval_steps: evaluate model every n steps
@@ -101,6 +125,11 @@ def fine_tune_model(train_data_path:str,
 
     model.print_trainable_parameters()
 
+    train_data, train_labels = load_snli(train_data_path)
+    eval_data, eval_labels = load_snli(eval_data_path)
+    train_dataset = LogicDataset(tokenizer, train_data, train_labels, max_len)
+    eval_dataset = LogicDataset(tokenizer, eval_data, eval_labels, max_len)
+
     training_args = TrainingArguments(
         output_dir = output_dir, 
         learning_rate = lr, 
@@ -123,21 +152,54 @@ def fine_tune_model(train_data_path:str,
     trainer = Trainer(
         model = model, 
         args = training_args,
-        #train_dataset = 
-        # eval_dataset = 
+        train_dataset = train_dataset,
+        eval_dataset = eval_dataset,
         tokenizer = tokenizer,
         compute_metrics = compute_metrics
     )
 
+    with tqdm(total=training_args.num_train_epochs, desc="Training") as pbar:
+        trainer.train()
+        pbar.update(1)
+
+    model_save_path = os.path.join(output_dir, "logic-snli-classification-weights.pth")
+    torch.save(model.state_dict(), model_save_path)
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
-
+    parser.add_argument('--train_data_path', type=str)
+    parser.add_argument('--eval_data_path', type=str)
+    parser.add_argument('--output_dir', type=str, default=os.getcwd())
+    parser.add_argument('--logging_dir', type=str, default=os.getcwd())
+    parser.add_argument('--max_len', type=int, default=512)
+    parser.add_argument('--epochs', type=int, default=20)
+    parser.add_argument('--batch_size', type=int, default=8)
+    parser.add_argument('--eval_steps', type=int, default=5000)
+    parser.add_argument('--lr', type=float, default=1e-5)
+    parser.add_argument('--weight_decay', type=float, default=0.001)
+    parser.add_argument('--r', type=int, default=64)
+    parser.add_argument('--lora_alpha', type=int, default=32)
+    parser.add_argument('--lora_dropout', type=float, default=0.1)
+    parser.add_argument('--inference_mode', type=bool, default=False)
     return parser.parse_args()
 
-def main(args):
-    pass 
 
+def main(args):
+    fine_tune_model(args['train_data_path'], 
+                    args['eval_data_path'], 
+                    args['output_dir'], 
+                    args['logging_dir'], 
+                    args['max_len'], 
+                    args['epochs'], 
+                    args['batch_size'], 
+                    args['eval_steps'], 
+                    args['lr'], 
+                    args['weight_decay'], 
+                    args['r'], 
+                    args['lora_alpha'], 
+                    args['lora_dropout'], 
+                    args['inference_mode']) 
 
 if __name__ == "__main__":
     args = parse_args()
