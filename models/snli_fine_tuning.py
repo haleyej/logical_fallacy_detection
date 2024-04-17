@@ -11,8 +11,10 @@ from torch.utils.data import Dataset
 from peft import get_peft_model, LoraConfig, TaskType
 from transformers import BertTokenizerFast, AutoModelForSequenceClassification, TrainingArguments, Trainer
 
+
 # set metrics
-metrics = evaluate.combine(["accuracy", "f1", "precision", "recall"])
+accuracy = evaluate.load("accuracy")
+f1 = evaluate.load("f1")
 
 def load_snli(path:str) -> tuple[list]:
     '''
@@ -31,7 +33,7 @@ def load_snli(path:str) -> tuple[list]:
     labels_to_ids = {'contradiction': 0, 'neutral': 1, 'entailment': 2}
     
     with open(path) as f: 
-        lines = f.readlines()
+        lines = f.readlines()[:200]
         for line in lines[1:]:
             line = line.split("\t")
             premise = line[5]
@@ -46,12 +48,22 @@ def load_snli(path:str) -> tuple[list]:
 
 
 def compute_metrics(pred) -> dict:
+    '''
+    helper function to compute evaluation metrics
+    '''
+    print(' ')
     logits, labels = pred
     predictions = np.argmax(logits, axis=-1)
-    return metrics.compute(predictions=predictions, references=labels)
+    f1_macro = f1.compute(predictions=predictions, references=labels, average='macro')['f1']
+    f1_weighted = f1.compute(predictions=predictions, references=labels, average='weighted')['f1']
+    accuracy_score = accuracy.compute(predictions=predictions, references=labels)['accuracy']
+    return {'accuracy':accuracy_score, 'f1_macro':f1_macro, 'f1_balanced':f1_weighted}
 
 
 class LogicDataset(Dataset):
+    '''
+    dataset helper class
+    '''
     def __init__(self, tokenizer, data:list, labels:list, max_len:int=512) -> None:
         self.tokenizer = tokenizer
         self.data = data 
@@ -148,7 +160,7 @@ def fine_tune_model(train_data_path:str,
         eval_steps = eval_steps,
         logging_dir = logging_dir,
         logging_strategy = "steps",
-        logging_steps = 50,
+        logging_steps = 1000,
         weight_decay = weight_decay,
         warmup_steps = 500,
         save_strategy = "steps",
@@ -169,8 +181,8 @@ def fine_tune_model(train_data_path:str,
         trainer.train()
         pbar.update(1)
 
-    model_save_path = os.path.join(output_dir, "logic-snli-classification-weights.pth")
-    torch.save(model.state_dict(), model_save_path)
+    #model_save_path = os.path.join(output_dir, "logic-snli-classification-weights.pth")
+    #torch.save(model.state_dict(), model_save_path)
 
 
 def parse_args():
@@ -182,7 +194,7 @@ def parse_args():
     parser.add_argument('--max_len', type=int, default=512)
     parser.add_argument('--epochs', type=int, default=20)
     parser.add_argument('--batch_size', type=int, default=8)
-    parser.add_argument('--eval_steps', type=int, default=5000)
+    parser.add_argument('--eval_steps', type=int, default=50)
     parser.add_argument('--lr', type=float, default=1e-5)
     parser.add_argument('--weight_decay', type=float, default=0.001)
     parser.add_argument('--r', type=int, default=64)
