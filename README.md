@@ -12,9 +12,11 @@ This project leverages natural language inference to help detect misinformation.
 
 
 ## Directory 
+```
 ├── models                  # Code for fine tuning models
 ├── papers                  # Academics papers used for this project
 ├── project_proposal        # Project proposal document
 ├── project_update          # Project update document &  code
 ├── LICENSE
 └── README.md
+```
