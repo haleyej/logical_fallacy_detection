@@ -33,7 +33,7 @@ def load_snli(path:str) -> tuple[list]:
     labels_to_ids = {'contradiction': 0, 'neutral': 1, 'entailment': 2}
     
     with open(path) as f: 
-        lines = f.readlines()[:200]
+        lines = f.readlines()
         for line in lines[1:]:
             line = line.split("\t")
             premise = line[5]
@@ -93,7 +93,7 @@ class LogicDataset(Dataset):
         return output_dict
 
 
-def fine_tune_model(train_data_path:str, 
+def fine_tune_snli(train_data_path:str, 
                     eval_data_path:str,
                     output_dir:str, 
                     logging_dir:str,
@@ -132,7 +132,7 @@ def fine_tune_model(train_data_path:str,
     '''
     model_checkpoint = "google-bert/bert-base-uncased"
 
-    tokenizer = BertTokenizerFast.from_pretrained(model_checkpoint)
+    tokenizer = BertTokenizerFast.from_pretrained("google-bert/bert-base-uncased")
     model = AutoModelForSequenceClassification.from_pretrained(model_checkpoint)
 
     peft_config = LoraConfig(task_type = TaskType.SEQ_CLS, 
@@ -194,7 +194,7 @@ def parse_args():
     parser.add_argument('--max_len', type=int, default=512)
     parser.add_argument('--epochs', type=int, default=20)
     parser.add_argument('--batch_size', type=int, default=8)
-    parser.add_argument('--eval_steps', type=int, default=50)
+    parser.add_argument('--eval_steps', type=int, default=1000)
     parser.add_argument('--lr', type=float, default=1e-5)
     parser.add_argument('--weight_decay', type=float, default=0.001)
     parser.add_argument('--r', type=int, default=64)
@@ -205,7 +205,7 @@ def parse_args():
 
 
 def main(args):
-    fine_tune_model(args['train_data_path'], 
+    fine_tune_snli(args['train_data_path'], 
                     args['eval_data_path'], 
                     args['output_dir'], 
                     args['logging_dir'], 
