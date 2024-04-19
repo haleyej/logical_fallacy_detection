@@ -16,6 +16,12 @@ from transformers import BertTokenizerFast, AutoModelForSequenceClassification, 
 accuracy = evaluate.load("accuracy")
 f1 = evaluate.load("f1")
 
+# set device
+device = 'cpu' 
+if torch.cuda.is_available():
+    device = 'cuda'
+print(f"Using '{device}' device")
+
 def load_snli(path:str) -> tuple[list]:
     '''
     helper function to load snli dataset
@@ -131,9 +137,14 @@ def fine_tune_snli(train_data_path:str,
         None
     '''
     model_checkpoint = "google-bert/bert-base-uncased"
-
     tokenizer = BertTokenizerFast.from_pretrained("google-bert/bert-base-uncased")
-    model = AutoModelForSequenceClassification.from_pretrained(model_checkpoint)
+
+    train_data, train_labels = load_snli(train_data_path)
+    eval_data, eval_labels = load_snli(eval_data_path)
+    train_dataset = LogicDataset(tokenizer, train_data, train_labels, max_len)
+    eval_dataset = LogicDataset(tokenizer, eval_data, eval_labels, max_len)
+
+    model = AutoModelForSequenceClassification.from_pretrained(model_checkpoint, num_labels = len(set(train_labels)))
 
     peft_config = LoraConfig(task_type = TaskType.SEQ_CLS, 
                              inference_mode = inference_mode, 
@@ -145,11 +156,6 @@ def fine_tune_snli(train_data_path:str,
 
     model.print_trainable_parameters()
 
-    train_data, train_labels = load_snli(train_data_path)
-    eval_data, eval_labels = load_snli(eval_data_path)
-    train_dataset = LogicDataset(tokenizer, train_data, train_labels, max_len)
-    eval_dataset = LogicDataset(tokenizer, eval_data, eval_labels, max_len)
-
     training_args = TrainingArguments(
         output_dir = output_dir, 
         learning_rate = lr, 
@@ -160,11 +166,11 @@ def fine_tune_snli(train_data_path:str,
         eval_steps = eval_steps,
         logging_dir = logging_dir,
         logging_strategy = "steps",
-        logging_steps = 1000,
+        logging_steps = eval_steps,
         weight_decay = weight_decay,
         warmup_steps = 500,
         save_strategy = "steps",
-        save_steps = eval_steps,
+        save_steps = eval_steps * 2,
         load_best_model_at_end = True
     )
 
@@ -177,12 +183,27 @@ def fine_tune_snli(train_data_path:str,
         compute_metrics = compute_metrics
     )
 
+    # for batch in trainer.get_train_dataloader():
+    #     loss = torch.nn.CrossEntropyLoss()
+    #     print('BATCH')
+    #     print(batch['labels'])
+    #     print(' ')
+    #     output = model(**batch)
+    #     print('OUTPUT')
+    #     print(output)
+    #     print(batch['labels'])
+    #     print(' ')
+    #     print('LOSS')
+    #     print(loss(output, batch['labels']))
+    #     print(' ')
+    #     break
+
     with tqdm(total=training_args.num_train_epochs, desc="Training") as pbar:
         trainer.train()
         pbar.update(1)
 
-    #model_save_path = os.path.join(output_dir, "logic-snli-classification-weights.pth")
-    #torch.save(model.state_dict(), model_save_path)
+    model_save_path = os.path.join(output_dir, "logic-snli-classification-weights.pth")
+    torch.save(model.state_dict(), model_save_path)
 
 
 def parse_args():
@@ -194,10 +215,10 @@ def parse_args():
     parser.add_argument('--max_len', type=int, default=512)
     parser.add_argument('--epochs', type=int, default=20)
     parser.add_argument('--batch_size', type=int, default=8)
-    parser.add_argument('--eval_steps', type=int, default=1000)
+    parser.add_argument('--eval_steps', type=int, default=10000)
     parser.add_argument('--lr', type=float, default=1e-5)
     parser.add_argument('--weight_decay', type=float, default=0.001)
-    parser.add_argument('--r', type=int, default=64)
+    parser.add_argument('--r', type=int, default=16)
     parser.add_argument('--lora_alpha', type=int, default=32)
     parser.add_argument('--lora_dropout', type=float, default=0.1)
     parser.add_argument('--inference_mode', type=bool, default=False)
