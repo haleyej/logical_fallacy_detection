@@ -1,6 +1,7 @@
 import os
 import wandb 
 import torch
+import random
 import evaluate
 import argparse
 import numpy as np 
@@ -11,16 +12,22 @@ from torch.utils.data import Dataset
 from peft import get_peft_model, LoraConfig, TaskType
 from transformers import BertTokenizerFast, AutoModelForSequenceClassification, TrainingArguments, Trainer
 
-
-# set metrics
-accuracy = evaluate.load("accuracy")
-f1 = evaluate.load("f1")
-
+## to run 
+# python3 snli_fine_tuning.py --train_data_path='../data/snli/snli_1.0_train.txt' --eval_data_path='../data/snli/snli_1.0_dev.txt' --output_dir='snli_output' --logging_dir='snli_logging'
 # set device
 device = 'cpu' 
 if torch.cuda.is_available():
     device = 'cuda'
 print(f"Using '{device}' device")
+
+os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
+
+# set metrics
+accuracy = evaluate.load("accuracy")
+f1 = evaluate.load("f1")
+
+# login 
+wandb.login()
 
 def load_snli(path:str) -> tuple[list]:
     '''
@@ -50,6 +57,12 @@ def load_snli(path:str) -> tuple[list]:
                 continue
             sentence_pairs.append(text)
             labels.append(label)
+    pairs = list(zip(sentence_pairs, labels))
+    random.shuffle(pairs)
+    if len(pairs) > 10000:
+        pairs = random.sample(pairs, 150000)
+    sentence_pairs, labels = zip(*pairs)
+    print(f'SAMPLE {len(sentence_pairs)} INSTANCES')
     return sentence_pairs, labels
 
 
@@ -81,7 +94,7 @@ class LogicDataset(Dataset):
 
     def __getitem__(self, index) -> dict:
         text = self.data[index]
-        label = self.labels[index]
+        label = torch.tensor(self.labels[index])
         text = text.strip()
         
         output_dict = self.tokenizer(
@@ -94,8 +107,10 @@ class LogicDataset(Dataset):
                     return_special_tokens_mask = False,
                     return_token_type_ids = False,
                     return_offsets_mapping = False)
-        
+
         output_dict['label'] = label 
+        output_dict['input_ids'] = torch.tensor(output_dict['input_ids'])
+        output_dict['attention_mask'] = torch.tensor(output_dict['attention_mask'])
         return output_dict
 
 
@@ -136,7 +151,7 @@ def fine_tune_snli(train_data_path:str,
     RETURNS: 
         None
     '''
-    model_checkpoint = "google-bert/bert-base-uncased"
+    model_checkpoint = "distilbert/distilbert-base-uncased"
     tokenizer = BertTokenizerFast.from_pretrained("google-bert/bert-base-uncased")
 
     train_data, train_labels = load_snli(train_data_path)
@@ -145,12 +160,14 @@ def fine_tune_snli(train_data_path:str,
     eval_dataset = LogicDataset(tokenizer, eval_data, eval_labels, max_len)
 
     model = AutoModelForSequenceClassification.from_pretrained(model_checkpoint, num_labels = len(set(train_labels)))
+    print(model)
 
     peft_config = LoraConfig(task_type = TaskType.SEQ_CLS, 
                              inference_mode = inference_mode, 
                              r = r, 
                              lora_alpha = lora_alpha, 
-                             lora_dropout = lora_dropout)
+                             lora_dropout = lora_dropout, 
+                             target_modules = ['lin1', 'lin2', 'pre_classifier', 'classifier'])
     
     model = get_peft_model(model, peft_config)
 
@@ -183,21 +200,6 @@ def fine_tune_snli(train_data_path:str,
         compute_metrics = compute_metrics
     )
 
-    # for batch in trainer.get_train_dataloader():
-    #     loss = torch.nn.CrossEntropyLoss()
-    #     print('BATCH')
-    #     print(batch['labels'])
-    #     print(' ')
-    #     output = model(**batch)
-    #     print('OUTPUT')
-    #     print(output)
-    #     print(batch['labels'])
-    #     print(' ')
-    #     print('LOSS')
-    #     print(loss(output, batch['labels']))
-    #     print(' ')
-    #     break
-
     with tqdm(total=training_args.num_train_epochs, desc="Training") as pbar:
         trainer.train()
         pbar.update(1)
@@ -210,16 +212,16 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--train_data_path', type=str)
     parser.add_argument('--eval_data_path', type=str)
-    parser.add_argument('--output_dir', type=str, default=os.getcwd())
-    parser.add_argument('--logging_dir', type=str, default=os.getcwd())
+    parser.add_argument('--output_dir', type=str, default='snli_output')
+    parser.add_argument('--logging_dir', type=str, default='snli_logging')
     parser.add_argument('--max_len', type=int, default=512)
     parser.add_argument('--epochs', type=int, default=20)
     parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--eval_steps', type=int, default=10000)
     parser.add_argument('--lr', type=float, default=1e-5)
     parser.add_argument('--weight_decay', type=float, default=0.001)
-    parser.add_argument('--r', type=int, default=16)
-    parser.add_argument('--lora_alpha', type=int, default=32)
+    parser.add_argument('--r', type=int, default=8)
+    parser.add_argument('--lora_alpha', type=int, default=16)
     parser.add_argument('--lora_dropout', type=float, default=0.1)
     parser.add_argument('--inference_mode', type=bool, default=False)
     return parser.parse_args()
