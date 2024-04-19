@@ -12,7 +12,7 @@ This project utilizes data from 3 sources. Due to their large size they are not 
 * [LIAR Fake News Dataset](https://aclanthology.org/P17-2067/)
 
 
-## Directory 
+## Repository Structure 
 ```
 ├── models                  <- Code for fine tuning models
 ├── papers                  <- Academics papers used for this project
