@@ -14,7 +14,18 @@ This project utilizes data from 3 sources. Due to their large size they are not 
 
 ## Repository Structure 
 ```
+├── evaluation              <- Code to visualize and evaluate results
+│   └── runs                <- CSV's with data from runs     
+│   └── visualize_runs.py 
+│
 ├── models                  <- Code for fine tuning models
+│   └── baselines.ipynb     
+│   └── evaluate_misinfo_detection.py 
+│   └── liar_fine_tuning.py 
+│   └── logic_fine_tuning.py 
+│   └── run_snli.sh
+│   └── snli_fine_tuning.py 
+│
 ├── papers                  <- Academics papers used for this project
 ├── project_proposal        <- Project proposal document
 ├── project_update          <- Project update document & code
