@@ -92,7 +92,7 @@ class LogicDataset(Dataset):
     def __len__(self) -> int:
         return len(self.data)
 
-    def __getitem__(self, index) -> dict:
+    def __getitem__(self, index:int) -> dict:
         text = self.data[index]
         label = torch.tensor(self.labels[index])
         text = text.strip()

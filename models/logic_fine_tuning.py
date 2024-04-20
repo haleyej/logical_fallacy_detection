@@ -12,6 +12,15 @@ from peft import get_peft_model, LoraConfig, TaskType
 from transformers import BertTokenizerFast, AutoModelForSequenceClassification, TrainingArguments, Trainer
 from snli_fine_tuning import compute_metrics, LogicDataset
 
+# set device
+device = 'cpu' 
+if torch.cuda.is_available():
+    device = 'cuda'
+print(f"Using '{device}' device")
+
+os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
+
+
 # set metrics
 accuracy = evaluate.load("accuracy")
 f1 = evaluate.load("f1")
