@@ -125,8 +125,7 @@ def fine_tune_logic(train_data_path:str,
     train_dataset.get_label_distribution()
     eval_dataset.get_label_distribution()
 
-    model = AutoModelForSequenceClassification.from_pretrained(model_checkpoint, num_labels = len(set(train_labels)))
-    print(model)
+    model = AutoModelForSequenceClassification.from_pretrained(model_checkpoint, num_labels = len(set(train_dataset.labels)))
 
     peft_config = LoraConfig(task_type = TaskType.SEQ_CLS, 
                              inference_mode = inference_mode, 
@@ -170,7 +169,7 @@ def fine_tune_logic(train_data_path:str,
         trainer.train()
         pbar.update(1)
 
-    model_save_path = os.path.join(output_dir, "logic-snli-classification-weights.pth")
+    model_save_path = os.path.join(output_dir, "liar-classification-weights.pth")
     torch.save(model.state_dict(), model_save_path)
 
 
