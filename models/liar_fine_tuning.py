@@ -1,5 +1,6 @@
 import os 
 import torch
+import argparse
 import numpy as np
 
 from tqdm import tqdm
@@ -9,14 +10,14 @@ from torch.utils.data import Dataset
 
 
 class LiarDataset(Dataset):
-    def init(self, path:str, tokenizer, max_len:int=512) -> None:
+    def __init__(self, path:str, tokenizer, max_len:int=512) -> None:
         labels_map = {
             'true': 1, 
             'mostly-true': 1, 
             'half-true': 0, 
             'barely-true': 0, 
             'false': 0, 
-            'pants-fire': 1
+            'pants-fire': 0
         }
 
         texts = []
@@ -33,14 +34,12 @@ class LiarDataset(Dataset):
         self.texts = texts
         self.labels = labels
         self.max_len = max_len
-
-
-    def get_label_distribution(self) -> dict:
-        return Counter(self.labels)
     
+
     def __len__(self) -> int:
         return len(self.texts)
     
+
     def __getitem__(self, index:int) -> dict:
         text = self.texts[index]
         label = self.labels[index]
@@ -58,6 +57,10 @@ class LiarDataset(Dataset):
 
         output_dict['label'] = torch.tensor(label)
         return output_dict
+    
+
+    def get_label_distribution(self) -> dict:
+        return Counter(self.labels)
 
     
 
