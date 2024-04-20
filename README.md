@@ -17,7 +17,7 @@ This project utilizes data from 3 sources. Due to their large size they are not 
 ├── models                  <- Code for fine tuning models
 ├── papers                  <- Academics papers used for this project
 ├── project_proposal        <- Project proposal document
-├── project_update          <- Project update document &  code
+├── project_update          <- Project update document & code
 ├── LICENSE
 └── README.md
 ```
