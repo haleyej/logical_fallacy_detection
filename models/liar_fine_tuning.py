@@ -122,6 +122,9 @@ def fine_tune_logic(train_data_path:str,
     train_dataset = LiarDataset(train_data_path, tokenizer, max_len)
     eval_dataset = LiarDataset(eval_data_path, tokenizer, max_len)
 
+    train_dataset.get_label_distribution()
+    eval_dataset.get_label_distribution()
+
     model = AutoModelForSequenceClassification.from_pretrained(model_checkpoint, num_labels = len(set(train_labels)))
     print(model)
 
