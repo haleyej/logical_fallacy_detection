@@ -43,7 +43,7 @@ def load_snli(path:str) -> tuple[list]:
     '''
     sentence_pairs = []
     labels = []
-    labels_to_ids = {'contradiction': 0, 'neutral': 1, 'entailment': 2}
+    labels_to_ids = {'contradiction': 0, 'neutral': 1, 'entailment': 1}
     
     with open(path) as f: 
         lines = f.readlines()
@@ -159,7 +159,9 @@ def fine_tune_snli(train_data_path:str,
     train_dataset = LogicDataset(tokenizer, train_data, train_labels, max_len)
     eval_dataset = LogicDataset(tokenizer, eval_data, eval_labels, max_len)
 
-    model = AutoModelForSequenceClassification.from_pretrained(model_checkpoint, num_labels = len(set(train_labels)))
+    #model = AutoModelForSequenceClassification.from_pretrained(model_checkpoint, num_labels = len(set(train_labels)))
+    model = AutoModelForSequenceClassification()
+    model.load_weights(model_checkpoint)
     print(model)
 
     peft_config = LoraConfig(task_type = TaskType.SEQ_CLS, 
@@ -206,6 +208,7 @@ def fine_tune_snli(train_data_path:str,
 
     model_save_path = os.path.join(output_dir, "logic-snli-classification-weights.pth")
     torch.save(model.state_dict(), model_save_path)
+    trainer.save_model(os.path.join(output_dir, 'snli_model'))
 
 
 def parse_args():
