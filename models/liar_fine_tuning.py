@@ -30,8 +30,8 @@ class LiarDataset(Dataset):
         labels_map = {
             'true': 1, 
             'mostly-true': 1, 
-            'half-true': 0, 
-            'barely-true': 0, 
+            'half-true': 1, 
+            'barely-true': 1 , 
             'false': 0, 
             'pants-fire': 0
         }
@@ -203,9 +203,9 @@ def parse_args():
     parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--eval_steps', type=int, default=1000)
     parser.add_argument('--lr', type=float, default=1e-5)
-    parser.add_argument('--weight_decay', type=float, default=0.001)
-    parser.add_argument('--r', type=int, default=16)
-    parser.add_argument('--lora_alpha', type=int, default=32)
+    parser.add_argument('--weight_decay', type=float, default=1e-4)
+    parser.add_argument('--r', type=int, default=8)
+    parser.add_argument('--lora_alpha', type=int, default=16)
     parser.add_argument('--lora_dropout', type=float, default=0.1)
     parser.add_argument('--inference_mode', type=bool, default=True)
     return parser.parse_args()
@@ -214,4 +214,4 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
     args_dict = vars(args)
-    main(args)
+    main(args_dict)

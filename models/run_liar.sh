@@ -23,4 +23,4 @@ echo "base model"
 python3 liar_fine_tuning.py --train_data_path='../data/liar_dataset/train.tsv' --eval_data_path='../data/liar_dataset/valid.tsv'
 echo "pretrained model"
 # FILL IN MORE DETAILS LATER
-python3 liar_fien_tuning.py --train_data_path='../data/liar_dataset/train.tst' --eval_data_path='../data/liar_dataset/valid.tsv' --model_checkpoint=''
+python3 liar_fine_tuning.py --train_data_path='../data/liar_dataset/train.tsv' --eval_data_path='../data/liar_dataset/valid.tsv' --model_checkpoint=''
