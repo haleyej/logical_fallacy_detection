@@ -8,7 +8,7 @@ import numpy as np
 from tqdm import tqdm
 from typing import Literal
 from torch.utils.data import DataLoader
-from transformers import DataCollatorWithPadding, BertTokenizerFast, AutoModelForSequenceClassification, DistilBertForSequenceClassification
+from transformers import DataCollatorWithPadding, BertTokenizerFast, AutoModelForSequenceClassification
 
 from liar_fine_tuning import LiarDataset
 
@@ -59,7 +59,6 @@ def evaluate_model(data_path:str,
     RETURNS:
         None
     '''
-    
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     tokenizer = BertTokenizerFast.from_pretrained('google-bert/bert-base-uncased')
@@ -98,8 +97,7 @@ def evaluate_model(data_path:str,
         writer.writerow(['metric', 'value'])
         for metric, value in scores.items():
             writer.writerow([metric, value])
-
-    
+ 
 
 def main(args):
     evaluate_model(args['data_path'], 
