@@ -37,11 +37,28 @@ def compute_metrics(predictions:list[int], labels:list[int]) -> dict:
 
 
 def evaluate_model(data_path:str, 
+                   model_checkpoint:str,
                    save_path:str=os.getcwd(), 
                    model_type:Literal['base', 'pretrained']='base',
-                   model_checkpoint:str='distilbert-base-uncased',
                    batch_size:int=8, 
                    max_len:int=512) -> None:
+    
+    '''
+    runs evaluation on misinformation detection test set 
+    saves results to file in the `save_path` directory
+
+    ARGUMENTS:
+        data_path: path to data 
+        save_path: path to save results to
+        model_type: base or pretrained 
+            - either distilbert model or distilbert + snli fine-tuning 
+        model_checkpoint: path to saved model checkpoint
+        bath_size: number of points to process at a time
+        max_len: maximum length of sequences
+
+    RETURNS:
+        None
+    '''
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
@@ -86,9 +103,9 @@ def evaluate_model(data_path:str,
 
 def main(args):
     evaluate_model(args['data_path'], 
+                   args['model_checkpoint'],
                    args['save_path'],
-                   args['model_type'], 
-                   args['model_checkpoint'], 
+                   args['model_type'],  
                    args['batch_size'], 
                    args['max_len']) 
 
@@ -96,9 +113,9 @@ def main(args):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_path', type=str)
+    parser.add_argument('--model_checkpoint', type=str) 
     parser.add_argument('--save_path', type=str, default=os.getcwd())
     parser.add_argument('--model_type', type=str, default='base')
-    parser.add_argument('--model_checkpoint', type=str, default='distilbert-base-uncased') 
     parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--max_len', type=int, default=512)
     return parser.parse_args()
