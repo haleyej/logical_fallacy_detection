@@ -1,6 +1,6 @@
 # Logical Fallacy Detection
 
-Haley Johnson (haleyej@umich.edu). University of Michigan. 
+Haley Johnson (haleyej@umich.edu). Course project for EECS 595, Natural Language Processing, at the University of Michigan
 
 ## Objective
 Misinformation has eroded trust in public institutions, elections, and digital platforms. Although significant work has been done on misinformation detection, it is still an open problem in Natural Language Processing. This project leverages natural language inference to fine-tune a BeRT model to classify logical relationships and logical fallacies. Then, I apply this model to a fake news dataset to asses if natural language inference abilities can help LLMs better detect misinformation. 
@@ -15,6 +15,7 @@ This project utilizes data from 3 sources. Due to their large size they are not 
 ## Repository Structure 
 ```
 ├── evaluation              <- Code to visualize and evaluate results
+|   └── misinfo_test        <- Evaluation metrics on misinformation test set 
 │   └── runs                <- CSV exports from Weights and Biases  
 │   └── visualize_runs.py 
 │
