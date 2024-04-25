@@ -20,7 +20,7 @@ def plot_loss(path:str,
     plt.show()
 
     if save_path != '':
-        f.savefig(os.path.join(save_path, f'{data_type}_loss.png'))
+        plt.savefig(os.path.join(save_path, f'{data_type}_loss.png'))
 
 
 def plot_metric(path:str, 
@@ -37,7 +37,7 @@ def plot_metric(path:str,
     plt.show()
 
     if save_path != '':
-        f.savefig(os.path.join(save_path, f'{metric}.png'))
+        plt.savefig(os.path.join(save_path, f'{metric}.png'))
 
 
 def plot_all_metrics(f1_path:str, 
@@ -61,14 +61,14 @@ def plot_all_metrics(f1_path:str,
     f.legend(title = 'Metric')
     plt.show()
     if save_path != '':
-        f.savefig(os.path.join(save_path, f'all_metrics.png'))
+        plt.savefig(os.path.join(save_path, f'all_metrics.png'))
 
 
 def main():
-    plot_loss('runs/epoch_1_loss.csv')
-    plot_metric('runs/epoch_1_f1.csv', 'f1')
-    plot_metric('runs/epoch_1_accuracy.csv', 'accuracy')
-    plot_all_metrics('runs/epoch_1_f1.csv', 'runs/epoch_1_accuracy.csv')
+    plot_loss('evaluation/runs/liar_snli/loss.csv', save_path='evaluation/runs/liar_snli')
+    plot_metric('evaluation/runs/liar_snli/f1.csv', 'f1', save_path='evaluation/runs/liar_snli')
+    plot_metric('evaluation/runs/liar_snli/accuracy.csv', 'accuracy', save_path='evaluation/runs/liar_snli')
+    plot_all_metrics('evaluation/runs/liar_snli/f1.csv', 'evaluation/runs/liar_snli/accuracy.csv', save_path='evaluation/runs/liar_snli')
 
 if __name__ == "__main__":
     main()
