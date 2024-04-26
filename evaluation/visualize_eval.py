@@ -27,9 +27,8 @@ def visualize_accuracy(df:pd.DataFrame, save_path:str=None) -> None:
 
 
 def visualize_f1(df:pd.DataFrame, save_path:str=None) -> None:
-    f1 = df[df['metric'] != 'accuracy']
-    f = sns.barplot(f1, x = 'Model', y = 'value', hue = 'metric')
-    f.legend(loc = 'lower left', title = 'Metric')
+    f1 = df[df['metric'] == 'f1_balanced']
+    f = sns.barplot(f1, x = 'Model', y = 'value')
     f.set(title = 'Test Set F1 Score by Model', xlabel = '', ylabel = 'F1')
 
     if save_path is not None:
