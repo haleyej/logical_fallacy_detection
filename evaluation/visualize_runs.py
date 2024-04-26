@@ -46,8 +46,8 @@ def plot_metric(path:str,
 
 
 def plot_all_metrics(f1_path:str, 
-                 accuracy_path:str, 
-                 save_path:str = None) -> None:
+                     accuracy_path:str, 
+                     save_path:str = None) -> None:
 
     f1 = pd.read_csv(f1_path)
     f1.columns = ['step', 'metric_val', 'min', 'max']
@@ -71,6 +71,37 @@ def plot_all_metrics(f1_path:str,
     plt.show()
 
 
+def compare_losses(df_1_path:str, 
+                   df_2_path:str, 
+                   df_1_type:str='Logical Inference', 
+                   df_2_type:str='DistilBERT',
+                   n_steps:int=5000,
+                   save_path:str=None) -> None:
+    
+    df_1 = pd.read_csv(df_1_path)
+    df_2 = pd.read_csv(df_2_path)
+
+    df_1['model'] = df_1_type
+    df_2['model'] = df_2_type 
+
+    df_1.columns = ['step', 'loss', 'loss_min', 'loss_max', 'model']
+    df_2.columns = ['step', 'loss', 'loss_min', 'loss_max', 'model']
+
+    df = pd.concat([df_1, df_2], axis = 0)
+
+    df['step'] = df['step'] * n_steps 
+
+    f = sns.lineplot(df, x = 'step', y = 'loss', hue = 'model')
+    f.set(title = 'Evaluation Loss by Model', xlabel = 'Step', ylabel = 'Loss')
+    f.legend(title = 'Model')
+
+    if save_path is not None:
+        plt.savefig(os.path.join(save_path, 'comparitive_loss.png'))
+
+    plt.show()
+compare_losses
+
+
 def plot_all_runs(runs:list[str]) -> None:
     for run in runs:
         plot_loss(f'evaluation/runs/{run}/loss.csv', save_path=f'evaluation/runs/{run}')
@@ -80,7 +111,9 @@ def plot_all_runs(runs:list[str]) -> None:
 
 def main():
     runs = ['snli', 'liar_snli', 'liar_bert']
-    plot_all_runs(runs)
+    #plot_all_runs(runs)
+
+    compare_losses('evaluation/runs/liar_snli/loss.csv', 'evaluation/runs/liar_bert/loss.csv', save_path='evaluation/runs')
 
 if __name__ == "__main__":
     main()
