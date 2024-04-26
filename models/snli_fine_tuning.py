@@ -43,7 +43,7 @@ def load_snli(path:str) -> tuple[list]:
     '''
     sentence_pairs = []
     labels = []
-    labels_to_ids = {'contradiction': 0, 'neutral': 1, 'entailment': 1}
+    labels_to_ids = {'contradiction': 0, 'entailment': 1}
     
     with open(path) as f: 
         lines = f.readlines()
@@ -52,15 +52,16 @@ def load_snli(path:str) -> tuple[list]:
             premise = line[5]
             hypothesis = line[6]
             text = f'premise: {premise}. hypothesis: {hypothesis}'
-            label = labels_to_ids.get(line[0])
-            if label == None:
+            label_text = line[0]
+            label = labels_to_ids.get(label_text)
+            if label == None or label_text == 'neutral':
                 continue
             sentence_pairs.append(text)
             labels.append(label)
     pairs = list(zip(sentence_pairs, labels))
     random.shuffle(pairs)
     if len(pairs) > 10000:
-        pairs = random.sample(pairs, 150000)
+        pairs = random.sample(pairs, 180000)
     sentence_pairs, labels = zip(*pairs)
     print(f'SAMPLE {len(sentence_pairs)} INSTANCES')
     return sentence_pairs, labels
