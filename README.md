@@ -18,9 +18,11 @@ This project utilizes data from 3 sources. Due to their large size they are not 
 |   └── misinfo_test        <- Evaluation metrics on misinformation test set 
 │   └── runs                <- CSV exports from Weights and Biases  
 │   └── visualize_runs.py 
+│   └── visualize_eval.py 
 │
 ├── models                  <- Code for runing & fine tuning models
-│   └── baselines.ipynb     
+│   └── baselines.ipynb  
+|   └── baselines.py    
 │   └── evaluate_misinfo_detection.py 
 │   └── liar_fine_tuning.py 
 │   └── logic_fine_tuning.py 
