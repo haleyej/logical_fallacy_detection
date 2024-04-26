@@ -78,17 +78,6 @@ def main():
     print(f"NAIVE BAYES: {liar_nb}")
     print(f"DUMMY CLASSIFIERS: {liar_dummy}")
 
-    # SNLI DATASET
-    # NAIVE BAYES: (0.37031758957654726, 0.16988727858293076)
-    # DUMMY CLASSIFIERS: (0.6705008143322475, 0.8027542501980379)
-
-    # -------------
-    # LIAR DATASET
-    # NAIVE BAYES: (0.7334372564302416, 0.8462230215827338)
-    # DUMMY CLASSIFIERS: (0.7334372564302416, 0.8462230215827338)
-
-    
-
 
 if __name__ == "__main__":
     main()
