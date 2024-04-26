@@ -3,6 +3,8 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt 
 
+sns.set_theme(context = 'paper', style = 'darkgrid')
+
 def load_data(path_1:str, path_2:str, path_1_type:str='DistilBERT Base', path_2_type:str='SNLI Finetuning') -> pd.DataFrame:
     df1 = pd.read_csv(path_1)
     df2 = pd.read_csv(path_2)

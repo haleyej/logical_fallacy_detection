@@ -9,10 +9,13 @@ sns.set_theme(context = 'paper', style = 'darkgrid')
 
 def plot_loss(path:str, 
               data_type:Literal['evaluation', 'train'] = 'evaluation', 
-              save_path:str = None) -> None:
+              save_path:str = None, 
+              n_steps:int = 5000) -> None:
     
     df = pd.read_csv(path)
     df.columns = ['step', 'loss', 'loss_min', 'loss_max']
+    df['step'] = df['step'] * n_steps
+
     f  = sns.lineplot(data = df, x = 'step', y = 'loss')
     f.set(title = f"{data_type.title()} Loss by Training Step", 
           xlabel = 'Training Step', 
@@ -25,10 +28,12 @@ def plot_loss(path:str,
 
 def plot_metric(path:str, 
                 metric:Literal['f1', 'accuracy'], 
-                save_path:str = None) -> None:
+                save_path:str = None, 
+                n_steps:int = 5000) -> None:
 
     df = pd.read_csv(path)
     df.columns = ['step', metric, f"{metric}_min", f"{metric}_max"]
+    df['step'] = df['step'] * n_steps
 
     f = sns.lineplot(df, x = 'step', y = metric)
     f.set(title = f"{metric.title()} by Training Step", 
@@ -41,7 +46,7 @@ def plot_metric(path:str,
 
 
 def plot_all_metrics(f1_path:str, 
-                 accuracy_path: str, 
+                 accuracy_path:str, 
                  save_path:str = None) -> None:
 
     f1 = pd.read_csv(f1_path)
