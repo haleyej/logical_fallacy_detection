@@ -25,7 +25,7 @@ def plot_loss(path:str,
 
 def plot_metric(path:str, 
                 metric:Literal['f1', 'accuracy'], 
-                save_path:str = '') -> None:
+                save_path:str = None) -> None:
 
     df = pd.read_csv(path)
     df.columns = ['step', metric, f"{metric}_min", f"{metric}_max"]
@@ -36,7 +36,7 @@ def plot_metric(path:str,
           ylabel = metric.title())
     plt.show()
 
-    if save_path != '':
+    if save_path != None:
         plt.savefig(os.path.join(save_path, f'{metric}.png'))
 
 
