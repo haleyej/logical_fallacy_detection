@@ -56,14 +56,14 @@ def get_baseline_scores(train_data:tuple[list],
 
 
 def main():
-    snli_train = load_snli('../data/snli/snli_1.0_train.txt')
-    snli_test = load_snli('../data/snli/snli_1.0_test.txt')
+    snli_train = load_snli('data/snli/snli_1.0_train.txt')
+    snli_test = load_snli('data/snli/snli_1.0_test.txt')
 
     snli_dummy = get_baseline_scores(snli_train, snli_test, 'dummy')
     snli_nb = get_baseline_scores(snli_train, snli_test, 'nb')
 
-    liar_train = load_liar('../data/liar_dataset/train.tsv')
-    liar_test = load_liar('../data/liar_dataset/test.tsv')
+    liar_train = load_liar('data/liar_dataset/train.tsv')
+    liar_test = load_liar('data/liar_dataset/test.tsv')
 
     liar_dummy = get_baseline_scores(liar_train, liar_test, 'dummy')
     liar_nb = get_baseline_scores(liar_train, liar_test, 'dummy')
@@ -77,6 +77,15 @@ def main():
     print('LIAR DATASET')
     print(f"NAIVE BAYES: {liar_nb}")
     print(f"DUMMY CLASSIFIERS: {liar_dummy}")
+
+    # SNLI DATASET
+    # NAIVE BAYES: (0.37031758957654726, 0.16988727858293076)
+    # DUMMY CLASSIFIERS: (0.6705008143322475, 0.8027542501980379)
+
+    # -------------
+    # LIAR DATASET
+    # NAIVE BAYES: (0.7334372564302416, 0.8462230215827338)
+    # DUMMY CLASSIFIERS: (0.7334372564302416, 0.8462230215827338)
 
     
 
