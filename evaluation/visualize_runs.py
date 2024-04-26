@@ -9,7 +9,7 @@ sns.set_theme(context = 'paper', style = 'darkgrid')
 
 def plot_loss(path:str, 
               data_type:Literal['evaluation', 'train'] = 'evaluation', 
-              save_path:str = '') -> None:
+              save_path:str = None) -> None:
     
     df = pd.read_csv(path)
     df.columns = ['step', 'loss', 'loss_min', 'loss_max']
@@ -17,10 +17,10 @@ def plot_loss(path:str,
     f.set(title = f"{data_type.title()} Loss by Training Step", 
           xlabel = 'Training Step', 
           ylabel = 'Loss')
-    plt.show()
 
-    if save_path != '':
+    if save_path is not None:
         plt.savefig(os.path.join(save_path, f'{data_type}_loss.png'))
+    plt.show()
 
 
 def plot_metric(path:str, 
@@ -34,15 +34,15 @@ def plot_metric(path:str,
     f.set(title = f"{metric.title()} by Training Step", 
           xlabel = 'Training Step', 
           ylabel = metric.title())
-    plt.show()
 
-    if save_path != None:
+    if save_path is not None:
         plt.savefig(os.path.join(save_path, f'{metric}.png'))
+    plt.show()
 
 
 def plot_all_metrics(f1_path:str, 
                  accuracy_path: str, 
-                 save_path:str = '') -> None:
+                 save_path:str = None) -> None:
 
     f1 = pd.read_csv(f1_path)
     f1.columns = ['step', 'metric_val', 'min', 'max']
@@ -59,16 +59,23 @@ def plot_all_metrics(f1_path:str,
           ylabel = 'Value')
 
     f.legend(title = 'Metric')
-    plt.show()
-    if save_path != '':
-        plt.savefig(os.path.join(save_path, f'all_metrics.png'))
 
+    if save_path is not None:
+        plt.savefig(os.path.join(save_path, 'all_metrics.png'))
+    
+    plt.show()
+
+
+def plot_all_runs(runs:list[str]) -> None:
+    for run in runs:
+        plot_loss(f'evaluation/runs/{run}/loss.csv', save_path=f'evaluation/runs/{run}')
+        plot_metric(f'evaluation/runs/{run}/f1.csv', 'f1', save_path=f'evaluation/runs/{run}')
+        plot_metric(f'evaluation/runs/{run}/accuracy.csv', 'accuracy', save_path=f'evaluation/runs/{run}')
+        plot_all_metrics(f'evaluation/runs/{run}/f1.csv', f'evaluation/runs/{run}/accuracy.csv', save_path=f'evaluation/runs/{run}')
 
 def main():
-    plot_loss('evaluation/runs/liar_snli/loss.csv', save_path='evaluation/runs/liar_snli')
-    plot_metric('evaluation/runs/liar_snli/f1.csv', 'f1', save_path='evaluation/runs/liar_snli')
-    plot_metric('evaluation/runs/liar_snli/accuracy.csv', 'accuracy', save_path='evaluation/runs/liar_snli')
-    plot_all_metrics('evaluation/runs/liar_snli/f1.csv', 'evaluation/runs/liar_snli/accuracy.csv', save_path='evaluation/runs/liar_snli')
+    runs = ['snli', 'liar_snli', 'liar_bert']
+    plot_all_runs(runs)
 
 if __name__ == "__main__":
     main()
